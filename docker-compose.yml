@@ -1,0 +1,17 @@
+services:
+  backend:
+    build: .
+
+    container_name: insightflow-backend
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+    environment:
+      - NODE_ENV=development
+
+    command: pnpm dev
