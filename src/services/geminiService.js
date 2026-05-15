@@ -31,7 +31,7 @@ class GeminiService {
 
         // Configuramos el modelo con instrucciones de sistema
         this.model = this.genAI.getGenerativeModel({
-            model: "gemini-2.0-flash-001", // Usamos la versión estable específica
+            model: "gemini-flash-latest", 
             systemInstruction: systemPrompt,
             generationConfig: {
                 responseMimeType: "application/json",

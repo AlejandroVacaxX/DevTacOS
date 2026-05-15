@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 # Cargamos variables de entorno desde la raiz
-load_dotenv()
+load_dotenv(override=True)
 
 def execute_query(sql_query):
     """
@@ -20,7 +20,7 @@ def execute_query(sql_query):
             return {"error": True, "message": "DB_URL no configurada en .env"}
 
         # Conexion a Supabase
-        connection = psycopg2.connect(db_url)
+        connection = psycopg2.connect(db_url, sslmode='require')
         cursor = connection.cursor()
         
         # Ejecucion de la consulta
