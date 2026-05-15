@@ -23,7 +23,6 @@ class DBService {
 
         return new Promise((resolve, reject) => {
             // Ejecutamos el script de Python pasando el SQL como argumento
-            // Usamos comillas simples para envolver el SQL y evitar problemas de escape en la terminal
             exec(`${this.pythonPath} "${this.dbScriptPath}" "${sql.replace(/"/g, '\\"')}"`, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error ejecución Python: ${error.message}`);
@@ -37,7 +36,7 @@ class DBService {
                 try {
                     const results = JSON.parse(stdout);
                     
-                    // Si el script de Python devolvió un objeto de error
+                    // Si el script de Python devolvio un objeto de error
                     if (results.error) {
                         return reject(new Error(results.message));
                     }

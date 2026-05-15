@@ -1,36 +1,20 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 /**
- * Servicio para interactuar con Gemini Pro.
- * Se encarga de la generación de SQL y análisis de negocio.
+ * Servicio para interactuar con Gemini.
  */
 class GeminiService {
     constructor() {
-        // Inicialización del SDK con la API Key de las variables de entorno
         const apiKey = process.env.GOOGLE_API_KEY;
+        
         if (!apiKey) {
             throw new Error('GOOGLE_API_KEY no configurada en el archivo .env');
         }
         this.genAI = new GoogleGenerativeAI(apiKey);
         
-        // Configuración del modelo para forzar respuesta en JSON
-        this.model = this.genAI.getGenerativeModel({
-            model: "gemini-1.5-pro",
-            generationConfig: {
-                responseMimeType: "application/json",
-            },
-        });
-    }
-
-    /**
-     * Genera un objeto JSON que contiene el SQL y un insight de negocio basado en el prompt.
-     * @param {string} userPrompt - El prompt en lenguaje natural del usuario.
-     * @returns {Promise<Object>} - El JSON con { sql_query, business_insight }.
-     */
-    async generateQueryAndInsight(userPrompt) {
         // Prompt de sistema para guiar a Gemini en la generación de SQL preciso y análisis
         const systemPrompt = `
-            Eres un experto en datos y SQL (PostgreSQL/BigQuery).
+            Eres un experto en datos y SQL (PostgreSQL).
             Tu tarea es convertir el lenguaje natural del usuario en una consulta SQL válida y proporcionar un breve insight de negocio.
             
             Debes responder ESTRICTAMENTE en formato JSON con la siguiente estructura:
@@ -40,21 +24,43 @@ class GeminiService {
             }
             
             Reglas:
-            1. El SQL debe ser compatible con PostgreSQL.
+            1. El SQL debe ser compatible con PostgreSQL (Northwind schema).
             2. Si el prompt no tiene sentido para datos, devuelve un mensaje de error en 'business_insight' y deja 'sql_query' vacío.
-            3. No incluyas bloques de código Markdown (\`\`\`json). Solo el JSON puro.
+            3. Responde solo con el JSON puro, sin markdown.
         `;
 
+        // Configuramos el modelo con instrucciones de sistema
+        this.model = this.genAI.getGenerativeModel({
+            model: "gemini-2.0-flash-001", // Usamos la versión estable específica
+            systemInstruction: systemPrompt,
+            generationConfig: {
+                responseMimeType: "application/json",
+            },
+        });
+    }
+
+    /**
+     * Genera un objeto JSON que contiene el SQL y un insight de negocio.
+     */
+    async generateQueryAndInsight(userPrompt) {
         try {
-            const result = await this.model.generateContent([systemPrompt, userPrompt]);
+            console.log('--- Iniciando llamada a Gemini SDK ---');
+            const result = await this.model.generateContent(userPrompt);
             const response = await result.response;
             const text = response.text();
             
-            // Parseamos la respuesta para asegurar que sea un JSON válido
+            console.log('--- Respuesta recibida de Gemini ---');
             return JSON.parse(text);
         } catch (error) {
-            console.error('Error en GeminiService:', error.message);
-            throw new Error('Error al generar la consulta con Gemini.');
+          
+            console.error('❌ ERROR DETALLADO EN GEMINI SERVICE:');
+            console.error(JSON.stringify(error, null, 2) || error);
+            
+            if (error.response) {
+                console.error('Detalles de la respuesta de error:', JSON.stringify(error.response, null, 2));
+            }
+
+            throw new Error(`Error en Gemini: ${error.message}`);
         }
     }
 }

@@ -1,12 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
-require('dotenv').config();
+const dotenv = require('dotenv');
 
-// Importacion de servicios siguiendo el principio de responsabilidad única
+// Cargamos el .env lo más pronto posible
+const result = dotenv.config();
+if (result.error) {
+    console.error('⚠️ Error cargando el archivo .env:', result.error);
+}
+
+// Manejadores de errores globales para evitar cierres silenciosos
+process.on('uncaughtException', (err) => {
+    console.error('❌ EXCEPCIÓN NO CAPTURADA:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ RECHAZO NO MANEJADO en:', promise, 'razón:', reason);
+});
+
+// Importación de servicios
+console.log('📦 Cargando servicios...');
 const geminiService = require('./src/services/geminiService');
 const dbService = require('./src/services/dbService');
 const consolidationService = require('./src/services/consolidationService');
+console.log('✅ Servicios cargados correctamente.');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,12 +40,9 @@ const securityProxy = axios.create({
 
 /**
  * Valida el prompt contra el Proxy de Seguridad (Lobster Trap/Veea).
- * @param {string} prompt - El texto ingresado por el usuario.
- * @returns {Promise<boolean>} - True si es seguro, lanza error si no.
  */
 async function validatePromptWithProxy(prompt) {
     try {
-        // Simulación de validación (Sustituir con la llamada real cuando esté disponible)
         return true; 
     } catch (error) {
         console.error('Error en el Proxy de Seguridad:', error.message);
@@ -38,7 +52,6 @@ async function validatePromptWithProxy(prompt) {
 
 /**
  * Endpoint Principal: InsightFlow Query
- * Flujo: Seguridad -> Gemini (SQL/Insight) -> DB (Python) -> Consolidación
  */
 app.post('/api/query', async (req, res) => {
     const { prompt } = req.body;
@@ -48,23 +61,20 @@ app.post('/api/query', async (req, res) => {
     }
 
     try {
-        // Paso 1: Validación con Proxy de Seguridad (Lobster Trap/Veea)
-        const isSafe = await validatePromptWithProxy(prompt);
+        console.log(`🔍 Procesando prompt: "${prompt}"`);
         
+        const isSafe = await validatePromptWithProxy(prompt);
         if (!isSafe) {
-            return res.status(403).json({ 
-                error: true, 
-                message: "El prompt fue rechazado por políticas de seguridad." 
-            });
+            return res.status(403).json({ error: true, message: "Bloqueado por seguridad." });
         }
         
-        // Paso 2: Generacion de SQL e Insight con Gemini
+        console.log('🤖 Llamando a Gemini...');
         const geminiResult = await geminiService.generateQueryAndInsight(prompt);
         
-        // Paso 3: Ejecucion en DB (Lógica delegada a DBService que apunta al venv de Python)
+        console.log('🗄️ Ejecutando SQL en DB...');
         const dbResults = await dbService.executeSQL(geminiResult.sql_query);
 
-        // Paso 4: Consolidación y Respuesta Estructurada
+        console.log('📊 Consolidando respuesta...');
         const finalResponse = consolidationService.consolidate(
             geminiResult.sql_query,
             geminiResult.business_insight,
@@ -74,10 +84,10 @@ app.post('/api/query', async (req, res) => {
         res.json(finalResponse);
 
     } catch (error) {
-        console.error('Error en /api/query:', error.message);
+        console.error('❌ Error en /api/query:', error.message);
         res.status(500).json({ 
             error: true, 
-            message: error.message || "Error interno del servidor durante el procesamiento." 
+            message: error.message || "Error interno del servidor." 
         });
     }
 });
@@ -87,6 +97,14 @@ app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date() });
 });
 
-app.listen(PORT, () => {
+// Forzamos que el bucle de eventos se mantenga activo con un "heartbeat"
+setInterval(() => {
+    console.log('💓 Heartbeat: El servidor sigue vivo - ' + new Date().toLocaleTimeString());
+}, 10000);
+
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 InsightFlow server running on http://localhost:${PORT}`);
+    console.log('Press Ctrl+C to stop');
 });
+
+
