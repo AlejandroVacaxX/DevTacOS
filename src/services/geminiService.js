@@ -1,7 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 class GeminiService {
-
   constructor(systemPrompt) {
     const apiKey = process.env.GOOGLE_API_KEY;
 
