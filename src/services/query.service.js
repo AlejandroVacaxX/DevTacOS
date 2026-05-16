@@ -1,106 +1,101 @@
-// Coordina todo el sistema
-
 const { isPromptSuspicious } = require("./security/prompt.guard");
-
-const {
-  isSQLSafe,
-  validateAST,
-  validateColumns
-} = require("./security/sql.guard");
-
+const { isSQLSafe, validateAST, validateColumns } = require("./security/sql.guard");
 const { buildLog, saveLog } = require("../logs/audit.logger");
 
 class QueryService {
-
-  constructor(geminiService) {
+  constructor(geminiService, veaaService, loobsterService) {
     this.gemini = geminiService;
+    this.veaa = veaaService;
+    this.loobster = loobsterService;
   }
 
   async process(userPrompt) {
-
     try {
 
       // ======================
-      // 1. Prompt Injection
+      // 1. Prompt Injection (básico)
       // ======================
       if (isPromptSuspicious(userPrompt)) {
-
         await saveLog(buildLog({
           userPrompt,
           status: "blocked",
           reason: "prompt_injection"
         }));
-
         throw new Error("Prompt bloqueado");
       }
 
       // ======================
-      // 2. Gemini
+      // 2. VEAA (INTENT SECURITY)
       // ======================
-      const raw =
-        await this.gemini.generateQueryAndInsight(userPrompt);
+      if (this.veaa) {
+        const veaaResult = await this.veaa.analyze(userPrompt);
 
-      const parsed =
-        typeof raw === "string"
-          ? JSON.parse(raw)
-          : raw;
+        if (!veaaResult.allowed) {
+          await saveLog(buildLog({
+            userPrompt,
+            status: "blocked",
+            reason: "veaa_block"
+          }));
+          throw new Error("Bloqueado por VEAA security layer");
+        }
+      }
 
       // ======================
-      // 3. Limpiar SQL
+      // 3. GEMINI (SQL generation)
       // ======================
-      parsed.sql_query = parsed.sql_query
+      const raw = await this.gemini.generateQueryAndInsight(userPrompt);
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+      let sql = parsed.sql_query
         .trim()
         .replace(/;$/, "");
 
       // ======================
-      // DEBUG
+      // 4. LOOBSTER (SQL FIREWALL)
       // ======================
-      console.log("🧠 RESPUESTA GEMINI:");
-      console.log(parsed);
+      if (this.loobster) {
+        const check = await this.loobster.validate(sql);
 
-      console.log("🧠 SQL GENERADO:");
-      console.log(parsed.sql_query);
+        if (!check.allowed) {
+          await saveLog(buildLog({
+            userPrompt,
+            sql,
+            status: "blocked",
+            reason: "loobster_block"
+          }));
+          throw new Error("SQL bloqueado por Loobster");
+        }
+      }
 
       // ======================
-      // 4. SQL safety
+      // 5. SQL SAFE CHECK (backup)
       // ======================
-      if (!isSQLSafe(parsed.sql_query)) {
-
-        await saveLog(buildLog({
-          userPrompt,
-          sql: parsed.sql_query,
-          status: "blocked",
-          reason: "sql_violation"
-        }));
-
+      if (!isSQLSafe(sql)) {
         throw new Error("SQL bloqueado");
       }
 
       // ======================
-      // 5. AST validation
+      // 6. AST validation
       // ======================
-      const ast =
-        validateAST(parsed.sql_query);
-
+      const ast = validateAST(sql);
       validateColumns(ast);
 
       // ======================
-      // 6. Audit OK
+      // 7. LOG OK
       // ======================
       await saveLog(buildLog({
         userPrompt,
-        sql: parsed.sql_query,
+        sql,
         insight: parsed.business_insight,
         status: "approved"
       }));
 
-      return parsed;
+      return {
+        sql_query: sql,
+        business_insight: parsed.business_insight
+      };
 
     } catch (err) {
-
-      console.error("❌ QUERY SERVICE ERROR:");
-      console.error(err);
-
       await saveLog(buildLog({
         userPrompt,
         status: "error",
