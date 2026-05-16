@@ -13,4 +13,4 @@ services:
     environment:
       - NODE_ENV=development
 
-    command: pnpm dev
+    command: sh -c "pnpm install && pnpm dev"
