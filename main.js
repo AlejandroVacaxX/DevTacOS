@@ -2,9 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-// =========================
-// .env
-// =========================
+
 const result = dotenv.config();
 
 if (result.error) {
@@ -140,6 +138,7 @@ app.get('/health', (req, res) => {
 // =========================
 // START SERVER
 // =========================
-app.listen(PORT, () => {
+app.listen(PORT,'0.0.0.0', () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });require('./src/services/security/intent.middleware')
+
