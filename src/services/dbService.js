@@ -7,8 +7,9 @@ const path = require('path');
  */
 class DBService {
     constructor() {
-        // Ruta al ejecutable de python en el entorno virtual
-        this.pythonPath = path.join(process.cwd(), 'venv', 'bin', 'python');
+        // FIJADO PARA HACKATHON: En Docker usamos el comando global 'python3'
+        this.pythonPath = 'python3';
+        
         // esta es la ruta al archivo de py que habla con supabase
         this.dbScriptPath = path.join(process.cwd(), 'src', 'scripts', 'db_executor.py');
     }

@@ -12,7 +12,7 @@ function buildLog({ userPrompt, sql, insight, status, reason }) {
 }
 
 async function saveLog(log) {
-  console.log("🧾 AUDIT LOG:", JSON.stringify(log, null, 2));
+  console.log("AUDIT LOG:", JSON.stringify(log, null, 2));
 
   // aquí conectas Supabase después
 }

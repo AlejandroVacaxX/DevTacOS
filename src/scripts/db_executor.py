@@ -2,34 +2,39 @@ import sys
 import json
 import psycopg2
 import os
+from decimal import Decimal
 from dotenv import load_dotenv
 
-# Cargamos variables de entorno desde la raiz
+# Cargamos las variables de entorno que Docker inyecta
 load_dotenv(override=True)
+
+# Clase especial para convertir números Decimal de la BD a datos que JSON entienda
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)  # Convierte el dinero/promedios a número estándar
+        return super(DecimalEncoder, self).default(obj)
 
 def execute_query(sql_query):
     """
-    Se conecta a la base de datos de Supabase (PostgreSQL) y ejecuta la consulta.
+    Se conecta a la base de datos de Supabase (PostgreSQL) usando la variable del .env.
     """
     connection = None
     try:
-        # Los datos de conexión deben estar en el .env, este se los pasare en secreto en whats amores.
-        db_url = os.getenv("DB_URL")
+        db_url = os.environ.get("DB_URL")
         
         if not db_url:
-            return {"error": True, "message": "DB_URL no configurada en .env"}
+            return {"error": True, "message": "La variable DB_URL no llegó al contenedor de Docker."}
 
-        # Conexion a Supabase
+        # Conexión limpia a Supabase
         connection = psycopg2.connect(db_url, sslmode='require')
         cursor = connection.cursor()
         
-        # Ejecucion de la consulta
+        # Ejecución de la consulta
         cursor.execute(sql_query)
         
-        # Obtenemos los nombres de las columnas
+        # Obtenemos los resultados y columnas
         colnames = [desc[0] for desc in cursor.description]
-        
-        # Obtenemos los resultados
         rows = cursor.fetchall()
         
         # Convertimos a lista de diccionarios para el JSON de Node.js
@@ -46,11 +51,10 @@ def execute_query(sql_query):
             connection.close()
 
 if __name__ == "__main__":
-    # Recibimos el SQL como argumento desde Node.js
     if len(sys.argv) > 1:
         sql = sys.argv[1]
         results = execute_query(sql)
-        # Imprimimos el JSON para que Node.js lo capture en el stdout
-        print(json.dumps(results))
+        # CORREGIDO: Usamos el DecimalEncoder para que no truene con promedios o sumas
+        print(json.dumps(results, cls=DecimalEncoder))
     else:
         print(json.dumps({"error": True, "message": "No SQL query provided"}))
