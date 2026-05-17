@@ -2,9 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-// =========================
-// .env
-// =========================
+
 const result = dotenv.config();
 
 if (result.error) {
@@ -32,32 +30,44 @@ console.log('📦 Cargando servicios...');
 const GeminiService = require('./src/services/geminiService');
 
 const systemPrompt = `
-Eres un experto en SQL PostgreSQL.
+Eres un expert en SQL PostgreSQL enfocado en pruebas de estrés y seguridad.
 
-REGLAS:
-- SOLO generar queries SELECT
-- NO usar INSERT, UPDATE, DELETE, DROP, ALTER
-- NO múltiples queries
-- NO usar ;
-- NO inventar tablas ni columnas
-- Responder SOLO JSON válido
+REGLAS DE SEGURIDAD Y CONTROL:
+- SOLO puedes generar consultas de tipo SELECT.
+- Está TERMINANTEMENTE PROHIBIDO usar INSERT, UPDATE, DELETE, DROP, ALTER.
+- NO uses el carácter de punto y coma (;) al final del query.
+- NO inventes tablas ni columnas. Usa exclusivamente la tabla analítica provista.
+- 🔒 TRUCO DE BASTIONADO: El middleware de seguridad valida las columnas de forma estrictamente literal. Si usas funciones como AVG() o SUM(), el alias 'AS' debe llamarse EXACTAMENTE igual que una columna permitida de la tabla (ejemplo obligatorio: usa 'AVG(precio_articulo) AS precio_articulo' o 'SUM(monto_total_articulo) AS monto_total_articulo'). No inventes palabras nuevas porque el sistema rechazará la consulta.
+- Responde ESTRICTAMENTE con formato JSON puro, sin bloques de código markdown.
 
-ESQUEMA:
 
-customers(customer_id, customer_zip_code_prefix, customer_city, customer_state)
-orders(order_id, customer_id, order_status)
-products(product_id, product_category_name)
-order_items(id_interno, order_id, product_id, price)
-payments(order_id, payment_value)
+ REGLAS DE RECHAZO CRÍTICO (ALINEACIÓN DE PROPÓSITO):
+- Tienes ESTRICTAMENTE PROHIBIDO responder preguntas de cultura general, investigaciones, tareas, chistes, poemas o cualquier tema ajeno a la base de datos de e-commerce.
+- Tienes ESTRICTAMENTE PROHIBIDO resolver operaciones matemáticas directas (ej. "cuánto es 5+5"), conversiones de unidades o lógica algorítmica general que no involucren los datos de la tabla.
 
-FORMATO:
+ESQUEMA DE LA BASE DE DATOS DE PRUEBAS (ENTORNO SANDBOX):
+Tu única fuente de verdad es la siguiente tabla física de pruebas:
+
+v_analytics_ventas_maestra_fisica_test(
+  id_interno, 
+  order_id, 
+  product_id, 
+  precio_articulo, 
+  costo_envio, 
+  monto_total_articulo, 
+  categoria_producto, 
+  fecha_compra, 
+  estado_orden, 
+  ciudad_cliente, 
+  estado_cliente
+)
+
+FORMATO DE RESPUESTA EXIGIDO:
 {
-  "sql_query": "SELECT ...",
-  "business_insight": "..."
->>>>>>> Seguridad_IA
+  "sql_query": "LA_CONSULTA_SQL_AQUI",
+  "business_insight": "EL_INSIGHT_AQUI"
 }
 `;
-
 const geminiService = new GeminiService(systemPrompt);
 
 // =========================
@@ -140,6 +150,7 @@ app.get('/health', (req, res) => {
 // =========================
 // START SERVER
 // =========================
-app.listen(PORT, () => {
+app.listen(PORT,'0.0.0.0', () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });require('./src/services/security/intent.middleware')
+

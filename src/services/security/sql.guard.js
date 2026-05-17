@@ -2,14 +2,29 @@ const { Parser } = require('node-sql-parser');
 const parser = new Parser();
 
 // =========================
-// ESQUEMA REAL
+// ESQUEMA REAL ACTUALIZADO
 // =========================
 const SCHEMA = {
   customers: ["customer_id","customer_zip_code_prefix","customer_city","customer_state"],
   orders: ["order_id","customer_id","order_status"],
   products: ["product_id","product_category_name"],
   order_items: ["id_interno","order_id","product_id","price"],
-  payments: ["order_id","payment_value"]
+  payments: ["order_id","payment_value"],
+  
+  // 🔥 TU NUEVA TABLA MAESTRA DE INGENIERÍA DE DATOS
+  v_analytics_ventas_maestra_fisica: [
+    "id_interno",
+    "order_id",
+    "product_id",
+    "precio_articulo",
+    "costo_envio",
+    "monto_total_articulo",
+    "categoria_producto",
+    "fecha_compra",
+    "estado_orden",
+    "ciudad_cliente",
+    "estado_cliente"
+  ]
 };
 
 // =========================
