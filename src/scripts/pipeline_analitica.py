@@ -16,7 +16,7 @@ def run_pipeline():
             print("Error: DB_URL no encontrada.")
             return
 
-        print("🔌 Conectando a Supabase...")
+        print("Conectando a Supabase...")
         connection = psycopg2.connect(db_url, sslmode='require')
         cursor = connection.cursor()
 
@@ -35,7 +35,7 @@ def run_pipeline():
         print("¡Pipeline ejecutado con éxito! Tabla física sincronizada.")
 
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"Error: {str(e)}")
         if connection:
             connection.rollback()
     finally:
