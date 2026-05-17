@@ -15,7 +15,8 @@ import StatusBadge from '../components/ui/StatusBadge'
 import { useQuery } from '../context/QueryContext'
 import { tableFromResults } from '../utils/tableFromResults'
 import { chartFromResults } from '../utils/chartFromResults'
-import { formatTimestamp } from '../utils/formatters'
+import { formatColumnLabel, formatTimestamp } from '../utils/formatters'
+import { translateErrorMessage } from '../utils/errorMessages'
 
 export default function QueryHistoryPage() {
   const { prompt, result, error, loading, durationMs } = useQuery()
@@ -34,7 +35,7 @@ export default function QueryHistoryPage() {
     return (
       <div className="query-empty-state">
         <Loader2 size={32} className="spin" />
-        <p>Analizando tu consulta…</p>
+        <p>Analyzing your query…</p>
       </div>
     )
   }
@@ -42,9 +43,10 @@ export default function QueryHistoryPage() {
   if (!result && !error) {
     return (
       <div className="query-empty-state">
-        <p>No hay resultados todavía.</p>
+        <p>
+        There are no results yet.</p>
         <Link to="/" className="btn-analyze query-empty-cta">
-          Ir al dashboard
+        Go to dashboard
         </Link>
       </div>
     )
@@ -54,7 +56,7 @@ export default function QueryHistoryPage() {
     return (
       <>
         <header className="query-result-header">
-          <h1>{prompt || 'Consulta'}</h1>
+          <h1>{prompt || 'Query'}</h1>
           <div className="meta-badges">
             <span className="badge-pill badge-pill--danger">
               <AlertCircle size={14} />
@@ -73,9 +75,9 @@ export default function QueryHistoryPage() {
         </header>
         <Card className="summary-card">
           <StatusBadge variant="failed">Failed</StatusBadge>
-          <p className="error-message">{error.message}</p>
+          <p className="error-message">{translateErrorMessage(error.message)}</p>
           <Link to="/" className="link-muted back-link">
-            ← Volver al dashboard
+            ← Go back to the dashboard
           </Link>
         </Card>
       </>
@@ -122,7 +124,7 @@ export default function QueryHistoryPage() {
             <Sparkles size={16} />
             AI Executive Summary
           </h3>
-          <p>{insight || 'Sin insight disponible.'}</p>
+          <p>{insight || 'No insight available.'}</p>
         </Card>
       </div>
 
@@ -130,7 +132,7 @@ export default function QueryHistoryPage() {
         <Card className="chart-card">
           <div className="card-header">
             <span className="card-title">
-              {chart.labelKey} vs {chart.valueKey}
+              {formatColumnLabel(chart.labelKey)} vs {formatColumnLabel(chart.valueKey)}
             </span>
           </div>
           <div className="bar-chart">
@@ -162,7 +164,8 @@ export default function QueryHistoryPage() {
           <DataTable columns={columns} rows={rows} />
         ) : (
           <p className="table-empty-message">
-            La consulta no devolvió filas.
+
+The query did not return any rows.
           </p>
         )}
       </Card>

@@ -33,7 +33,9 @@ export default function SystemStatusPage() {
     <>
       <header className="page-header">
         <h1>System Status</h1>
-        <p>Estado del API según <code>GET /health</code> y la última consulta ejecutada.</p>
+        <p>
+        API status according to <code>GET /health </code>
+        and the last query executed.</p>
       </header>
 
       <div className="metric-grid">
@@ -88,8 +90,7 @@ export default function SystemStatusPage() {
         ) : (
           <Card className="status-hint-card">
             <p className="table-empty-message">
-              Ejecuta una consulta en el dashboard para ver métricas de la última
-              respuesta del API.
+            Run a query on the dashboard to view metrics from the latest API response.
             </p>
           </Card>
         )}

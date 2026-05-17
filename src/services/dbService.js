@@ -27,7 +27,7 @@ class DBService {
             exec(`${this.pythonPath} "${this.dbScriptPath}" "${sql.replace(/"/g, '\\"')}"`, (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error ejecución Python: ${error.message}`);
-                    return reject(new Error('Error al ejecutar la consulta en Supabase.'));
+                    return reject(new Error('Failed to run query on the database.'));
                 }
                 
                 if (stderr) {
@@ -45,7 +45,7 @@ class DBService {
                     resolve(results);
                 } catch (parseError) {
                     console.error('Error al parsear JSON de Python:', stdout);
-                    reject(new Error('Error al procesar los resultados de la base de datos.'));
+                    reject(new Error('Failed to process database results.'));
                 }
             });
         });

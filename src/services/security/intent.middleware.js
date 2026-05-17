@@ -7,7 +7,7 @@ function intentMiddleware(req, res, next) {
   if (!prompt || typeof prompt !== "string") {
     return res.status(400).json({
       error: true,
-      message: "Prompt inválido"
+      message: "Invalid prompt"
     });
   }
 
@@ -20,7 +20,7 @@ function intentMiddleware(req, res, next) {
   if (!isValid) {
     return res.status(403).json({
       error: true,
-      message: "Intent bloqueado por seguridad"
+      message: "Request blocked by security"
     });
   }
 

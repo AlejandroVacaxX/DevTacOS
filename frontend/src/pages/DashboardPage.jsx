@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Card from '../components/ui/Card'
 import StatusBadge from '../components/ui/StatusBadge'
 import { useQuery } from '../context/QueryContext'
+import { translateErrorMessage } from '../utils/errorMessages'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -24,7 +25,7 @@ export default function DashboardPage() {
   async function handleAnalyze(text) {
     const query = (text ?? prompt).trim()
     if (!query) {
-      setSubmitError('Escribe una pregunta antes de analizar.')
+      setSubmitError('Type a question before analyzing.')
       return
     }
     setSubmitError(null)
@@ -32,7 +33,7 @@ export default function DashboardPage() {
       await submitQuery(query)
       navigate('/query-history')
     } catch (err) {
-      setSubmitError(err.message)
+      setSubmitError(translateErrorMessage(err.message))
       navigate('/query-history')
     }
   }
@@ -61,7 +62,7 @@ export default function DashboardPage() {
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="e.g., Top 5 categorías por monto total de ventas..."
+            placeholder="i.e., Which category generates the most revenue?"
             rows={3}
             disabled={loading}
           />
@@ -123,7 +124,7 @@ export default function DashboardPage() {
             {recentQueries.length === 0 ? (
               <tr>
                 <td colSpan={4} className="table-empty">
-                  No hay consultas en esta sesión. Ejecuta tu primera pregunta arriba.
+                There are no queries in this session. Please submit your first question above.
                 </td>
               </tr>
             ) : (

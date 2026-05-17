@@ -5,7 +5,7 @@ class GeminiService {
     const apiKey = process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
-      throw new Error('GOOGLE_API_KEY no configurada');
+      throw new Error('GOOGLE_API_KEY is not configured');
     }
 
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -29,7 +29,7 @@ class GeminiService {
 
       // validación mínima estructural
       if (!parsed.sql_query || !parsed.business_insight) {
-        throw new Error("Respuesta incompleta de Gemini");
+        throw new Error("Incomplete response from Gemini");
       }
 
       return parsed;

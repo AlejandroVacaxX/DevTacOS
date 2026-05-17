@@ -4,6 +4,7 @@ import DataTable from '../components/ui/DataTable'
 import StatusBadge from '../components/ui/StatusBadge'
 import { useQuery } from '../context/QueryContext'
 import { formatTimestamp } from '../utils/formatters'
+import { translateErrorMessage } from '../utils/errorMessages'
 
 function truncate(text, max = 80) {
   if (!text || text.length <= max) return text
@@ -33,7 +34,10 @@ export default function ActivityPage() {
     ),
     httpStatus: entry.httpStatus ?? '—',
     latency: entry.durationMs != null ? `${entry.durationMs}ms` : '—',
-    errorMessage: entry.errorMessage ?? '—',
+    errorMessage:
+      entry.errorMessage != null
+        ? translateErrorMessage(entry.errorMessage)
+        : '—',
   }))
 
   return (
@@ -41,7 +45,8 @@ export default function ActivityPage() {
       <header className="page-header">
         <h1>Query Activity</h1>
         <p>
-          Historial de consultas de esta sesión enviadas al API (
+
+History of queries sent to the API during this session (
           <code>POST /api/query</code>).
         </p>
       </header>
@@ -55,7 +60,8 @@ export default function ActivityPage() {
         </div>
         {rows.length === 0 ? (
           <p className="table-empty-message">
-            Aún no hay consultas en esta sesión.
+
+There are no queries in this session yet.
           </p>
         ) : (
           <DataTable columns={columns} rows={rows} />

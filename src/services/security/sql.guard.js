@@ -53,11 +53,11 @@ function validateAST(sql) {
   const ast = parser.astify(sql);
 
   if (!ast) {
-    throw new Error("SQL inválido");
+    throw new Error("Invalid SQL");
   }
 
   if (ast.type !== "select") {
-    throw new Error("Solo SELECT permitido");
+    throw new Error("Only SELECT queries are allowed");
   }
 
   return ast;
@@ -98,7 +98,7 @@ function validateColumns(ast) {
 
       // validar contra schema
       if (!validColumns.has(col)) {
-        throw new Error(`Columna no permitida: ${col}`);
+        throw new Error(`Column not allowed: ${col}`);
       }
     }
 
@@ -109,7 +109,7 @@ function validateColumns(ast) {
       const col = node.expr.column.toLowerCase();
 
       if (col !== "*" && !validColumns.has(col)) {
-        throw new Error(`Columna no permitida: ${col}`);
+        throw new Error(`Column not allowed: ${col}`);
       }
     }
 

@@ -21,7 +21,7 @@ class QueryService {
           status: "blocked",
           reason: "prompt_injection"
         }));
-        throw new Error("Prompt bloqueado");
+        throw new Error("Prompt blocked");
       }
 
       // ======================
@@ -36,7 +36,7 @@ class QueryService {
             status: "blocked",
             reason: "veaa_block"
           }));
-          throw new Error("Bloqueado por VEAA security layer");
+          throw new Error("Blocked by VEAA security layer");
         }
       }
 
@@ -63,7 +63,7 @@ class QueryService {
             status: "blocked",
             reason: "loobster_block"
           }));
-          throw new Error("SQL bloqueado por Loobster");
+          throw new Error("SQL blocked by Loobster");
         }
       }
 
@@ -71,7 +71,7 @@ class QueryService {
       // 5. SQL SAFE CHECK (backup)
       // ======================
       if (!isSQLSafe(sql)) {
-        throw new Error("SQL bloqueado");
+        throw new Error("SQL blocked");
       }
 
       // ======================

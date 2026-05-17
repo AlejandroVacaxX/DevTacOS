@@ -8,6 +8,7 @@ import {
 } from 'react'
 import { postQuery } from '../api/query'
 import { formatRelativeTime } from '../utils/formatters'
+import { translateErrorMessage } from '../utils/errorMessages'
 
 const RECENT_KEY = 'insightflow_recent_queries'
 const SESSION_KEY = 'insightflow_last_session'
@@ -48,7 +49,10 @@ function serializeError(err) {
 
 function deserializeError(saved) {
   if (!saved) return null
-  return Object.assign(new Error(saved.message), { status: saved.status })
+  return Object.assign(
+    new Error(translateErrorMessage(saved.message)),
+    { status: saved.status },
+  )
 }
 
 export function QueryProvider({ children }) {
@@ -85,7 +89,7 @@ export function QueryProvider({ children }) {
     async (userPrompt) => {
       const trimmed = userPrompt?.trim()
       if (!trimmed) {
-        const err = new Error('Escribe una pregunta antes de analizar.')
+        const err = new Error('Type a question before analyzing.')
         err.status = 400
         throw err
       }
@@ -126,7 +130,7 @@ export function QueryProvider({ children }) {
           timestamp: new Date().toISOString(),
           durationMs: err.durationMs ?? null,
           httpStatus: err.status ?? null,
-          errorMessage: err.message,
+          errorMessage: translateErrorMessage(err.message),
           resultSnapshot: null,
         })
         throw err
@@ -151,7 +155,7 @@ export function QueryProvider({ children }) {
       setResult(null)
       setError(
         deserializeError({
-          message: entry.errorMessage ?? 'Consulta fallida',
+          message: translateErrorMessage(entry.errorMessage ?? 'Query failed'),
           status: entry.httpStatus,
         }),
       )
@@ -203,7 +207,7 @@ export function QueryProvider({ children }) {
 export function useQuery() {
   const ctx = useContext(QueryContext)
   if (!ctx) {
-    throw new Error('useQuery debe usarse dentro de QueryProvider')
+    throw new Error('useQuery must be used within QueryProvider')
   }
   return ctx
 }

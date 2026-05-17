@@ -1,20 +1,20 @@
+import { formatColumnLabel } from './columnLabels'
+
+const LOCALE = 'en-US'
+
+export { formatColumnLabel }
+
 export function formatCellValue(value) {
   if (value == null) return '—'
   if (typeof value === 'number') {
     return Number.isInteger(value)
-      ? value.toLocaleString()
-      : value.toLocaleString(undefined, { maximumFractionDigits: 2 })
+      ? value.toLocaleString(LOCALE)
+      : value.toLocaleString(LOCALE, { maximumFractionDigits: 2 })
   }
   if (typeof value === 'boolean') return value ? 'true' : 'false'
-  if (value instanceof Date) return value.toLocaleString()
+  if (value instanceof Date) return value.toLocaleString(LOCALE)
   if (typeof value === 'object') return JSON.stringify(value)
   return String(value)
-}
-
-export function formatColumnLabel(key) {
-  return key
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 export function formatRelativeTime(iso) {
@@ -32,5 +32,5 @@ export function formatRelativeTime(iso) {
 
 export function formatTimestamp(iso) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleString()
+  return new Date(iso).toLocaleString(LOCALE)
 }
