@@ -27,7 +27,7 @@ class GeminiService {
 
       const parsed = JSON.parse(text);
 
-      // 🔐 validación mínima estructural
+      // validación mínima estructural
       if (!parsed.sql_query || !parsed.business_insight) {
         throw new Error("Respuesta incompleta de Gemini");
       }

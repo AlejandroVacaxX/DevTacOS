@@ -7,7 +7,7 @@ const path = require('path');
  */
 class DBService {
     constructor() {
-        // 🔥 FIJADO PARA HACKATHON: En Docker usamos el comando global 'python3'
+        // FIJADO PARA HACKATHON: En Docker usamos el comando global 'python3'
         this.pythonPath = 'python3';
         
         // esta es la ruta al archivo de py que habla con supabase

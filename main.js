@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 const result = dotenv.config();
 
 if (result.error) {
-    console.error('⚠️ Error cargando el archivo .env:', result.error);
+    console.error('Error cargando el archivo .env:', result.error);
 }
 
 
@@ -14,41 +14,46 @@ if (result.error) {
 // Errores globales
 // =========================
 process.on('uncaughtException', (err) => {
-    console.error('❌ EXCEPCIÓN NO CAPTURADA:', err);
+    console.error('EXCEPCIÓN NO CAPTURADA:', err);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ RECHAZO NO MANEJADO en:', promise, reason);
+    console.error('RECHAZO NO MANEJADO en:', promise, reason);
 });
 
-console.log('📦 Cargando servicios...');
+console.log('Cargando servicios...');
 
 // =========================
-// 🤖 GEMINI
+// GEMINI
 // =========================
 
 const GeminiService = require('./src/services/geminiService');
 
 const systemPrompt = `
-Eres un expert en SQL PostgreSQL enfocado en pruebas de estrés y seguridad.
+Eres un expert en SQL PostgreSQL enfocados en pruebas de estrés y seguridad.
 
 REGLAS DE SEGURIDAD Y CONTROL:
 - SOLO puedes generar consultas de tipo SELECT.
 - Está TERMINANTEMENTE PROHIBIDO usar INSERT, UPDATE, DELETE, DROP, ALTER.
 - NO uses el carácter de punto y coma (;) al final del query.
 - NO inventes tablas ni columnas. Usa exclusivamente la tabla analítica provista.
-- 🔒 TRUCO DE BASTIONADO: El middleware de seguridad valida las columnas de forma estrictamente literal. Si usas funciones como AVG() o SUM(), el alias 'AS' debe llamarse EXACTAMENTE igual que una columna permitida de la tabla (ejemplo obligatorio: usa 'AVG(precio_articulo) AS precio_articulo' o 'SUM(monto_total_articulo) AS monto_total_articulo'). No inventes palabras nuevas porque el sistema rechazará la consulta.
+- TRUCO DE BASTIONADO: El middleware de seguridad valida las columnas de forma estrictamente literal. Si usas funciones como AVG() o SUM(), el alias 'AS' debe llamarse EXACTAMENTE igual que una columna permitida de la tabla (ejemplo obligatorio: usa 'AVG(precio_articulo) AS precio_articulo' o 'SUM(monto_total_articulo) AS monto_total_articulo'). No inventes palabras nuevas porque el sistema rechazará la consulta.
 - Responde ESTRICTAMENTE con formato JSON puro, sin bloques de código markdown.
 
 
  REGLAS DE RECHAZO CRÍTICO (ALINEACIÓN DE PROPÓSITO):
 - Tienes ESTRICTAMENTE PROHIBIDO responder preguntas de cultura general, investigaciones, tareas, chistes, poemas o cualquier tema ajeno a la base de datos de e-commerce.
 - Tienes ESTRICTAMENTE PROHIBIDO resolver operaciones matemáticas directas (ej. "cuánto es 5+5"), conversiones de unidades o lógica algorítmica general que no involucren los datos de la tabla.
+- 🚨 REGLA DE ESCAPE PARA RECHAZOS: Si el usuario te pide algo prohibido por estas reglas, NO respondas con texto plano ni rompas el formato. DEBES devolver obligatoriamente el JSON estructurado exigido, colocando en "sql_query" una consulta inocua que no devuelva filas (ejemplo estricto: "SELECT id_interno FROM v_analytics_ventas_maestra WHERE id_interno IS NULL") y en "business_insight" el mensaje formal de rechazo.
+
+⚠️ REGLA DE ABSTRACCIÓN COMERCIAL (OCULTAR ESTRUCTURA):
+- Está TERMINANTEMENTE PROHIBIDO mencionar nombres técnicos de tablas, vistas o columnas (como "v_analytics_ventas_maestra" o similares) en el texto de "business_insight".
+- Si rechazas una solicitud o das un insight, habla exclusivamente en lenguaje de negocios. Refiérete a la fuente de datos de manera abstracta como "el catálogo de la empresa", "el registro histórico de ventas" o "el sistema analítico". El usuario final nunca debe saber cómo se llaman tus tablas internas.
 
 ESQUEMA DE LA BASE DE DATOS DE PRUEBAS (ENTORNO SANDBOX):
 Tu única fuente de verdad es la siguiente tabla física de pruebas:
 
-v_analytics_ventas_maestra_fisica_test(
+v_analytics_ventas_maestra(
   id_interno, 
   order_id, 
   product_id, 
@@ -72,7 +77,7 @@ const geminiService = new GeminiService(systemPrompt);
 
 // =========================
 
-// 🗄️ SERVICIOS
+// SERVICIOS
 // =========================
 const dbService = require('./src/services/dbService');
 const consolidationService = require('./src/services/consolidationService');
@@ -82,11 +87,11 @@ const QueryService = require('./src/services/query.service');
 const queryService = new QueryService(geminiService);
 
 // =========================
-// 🛡️ SECURITY MIDDLEWARE
+// SECURITY MIDDLEWARE
 // =========================
 const intentMiddleware = require('./src/services/security/intent.middleware');
 
-console.log('✅ Servicios cargados correctamente.');
+console.log('Servicios cargados correctamente.');
 
 // =========================
 // EXPRESS
@@ -107,19 +112,19 @@ app.post('/api/query', intentMiddleware, async (req, res) => {
 
     try {
 
-        console.log(`🔍 Prompt: ${prompt}`);
+        console.log(`Prompt: ${prompt}`);
 
-        console.log('⚙️ Procesando con QueryService...');
+        console.log('Procesando con QueryService...');
 
         const geminiResult = await queryService.process(prompt);
 
-        console.log('🗄️ Ejecutando SQL...');
+        console.log('Ejecutando SQL...');
 
         const dbResults = await dbService.executeSQL(
             geminiResult.sql_query
         );
 
-        console.log('📊 Consolidando...');
+        console.log('Consolidando...');
 
         const finalResponse = consolidationService.consolidate(
             geminiResult.sql_query,
@@ -131,7 +136,7 @@ app.post('/api/query', intentMiddleware, async (req, res) => {
 
     } catch (error) {
 
-        console.error('❌ Error:', error.message);
+        console.error('Error:', error.message);
 
         res.status(500).json({
             error: true,
@@ -151,6 +156,6 @@ app.get('/health', (req, res) => {
 // START SERVER
 // =========================
 app.listen(PORT,'0.0.0.0', () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 
 });

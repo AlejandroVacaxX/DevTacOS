@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # Cargamos las variables de entorno que Docker inyecta
 load_dotenv(override=True)
 
-# 🪙 Clase especial para convertir números Decimal de la BD a datos que JSON entienda
+# Clase especial para convertir números Decimal de la BD a datos que JSON entienda
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Decimal):
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         sql = sys.argv[1]
         results = execute_query(sql)
-        # 🎯 CORREGIDO: Usamos el DecimalEncoder para que no truene con promedios o sumas
+        # CORREGIDO: Usamos el DecimalEncoder para que no truene con promedios o sumas
         print(json.dumps(results, cls=DecimalEncoder))
     else:
         print(json.dumps({"error": True, "message": "No SQL query provided"}))

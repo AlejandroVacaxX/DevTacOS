@@ -35,7 +35,7 @@ def run_pipeline():
         print("¡Pipeline ejecutado con éxito! Tabla física sincronizada.")
 
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"Error: {str(e)}")
         if connection:
             connection.rollback()
     finally:
