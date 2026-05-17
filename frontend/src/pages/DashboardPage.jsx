@@ -1,182 +1,172 @@
-import {
-  Database,
-  SlidersHorizontal,
-  Lightbulb,
-  TrendingUp,
-  AlertTriangle,
-  Users,
-  Sparkles,
-  MessageSquare,
-  Code2,
-  FileText,
-  Clock,
-  Star,
-} from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Lightbulb, MessageSquare } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 import Card from '../components/ui/Card'
 import StatusBadge from '../components/ui/StatusBadge'
-
-const suggestions = [
-  {
-    icon: TrendingUp,
-    text: 'What was our revenue growth in Q3 compared to Q2?',
-    category: 'Sales Performance',
-  },
-  {
-    icon: AlertTriangle,
-    text: 'Identify customers at high risk of churning this month.',
-    category: 'Customer Success',
-  },
-  {
-    icon: Users,
-    text: 'Show daily active users segmented by platform.',
-    category: 'Product Analytics',
-  },
-  {
-    icon: Sparkles,
-    text: 'Generate a macro-economic impact report for APAC.',
-    category: 'Automated Macro',
-  },
-]
-
-const recentQueries = [
-  {
-    id: 1,
-    icon: MessageSquare,
-    query: 'MAU trends over the last 6 months',
-    status: 'success',
-    statusLabel: 'Success',
-    time: '2 mins ago',
-  },
-  {
-    id: 2,
-    icon: Code2,
-    query: 'SELECT sum(revenue) FROM...',
-    status: 'success',
-    statusLabel: 'Success',
-    time: '45 mins ago',
-  },
-  {
-    id: 3,
-    icon: FileText,
-    query: 'Cost breakdown by AWS service',
-    status: 'failed',
-    statusLabel: 'Failed',
-    time: '2 hrs ago',
-  },
-  {
-    id: 4,
-    icon: Clock,
-    query: 'Weekly Churn Prediction Model run',
-    status: 'running',
-    statusLabel: 'Running',
-    time: 'Active',
-  },
-]
+import { useQuery } from '../context/QueryContext'
 
 export default function DashboardPage() {
+  const navigate = useNavigate()
+  const {
+    prompt,
+    setPrompt,
+    loading,
+    recentQueries,
+    submitQuery,
+    viewStoredEntry,
+  } = useQuery()
+  const [submitError, setSubmitError] = useState(null)
+
+  const successfulRecent = recentQueries
+    .filter((q) => q.status === 'success')
+    .slice(0, 4)
+
+  async function handleAnalyze(text) {
+    const query = (text ?? prompt).trim()
+    if (!query) {
+      setSubmitError('Escribe una pregunta antes de analizar.')
+      return
+    }
+    setSubmitError(null)
+    try {
+      await submitQuery(query)
+      navigate('/query-history')
+    } catch (err) {
+      setSubmitError(err.message)
+      navigate('/query-history')
+    }
+  }
+
+  function handleView(entry) {
+    viewStoredEntry(entry)
+    navigate('/query-history')
+  }
+
+  async function handleRerun(entry) {
+    setPrompt(entry.prompt)
+    try {
+      await submitQuery(entry.prompt)
+    } catch {
+      /* error shown on query-history */
+    }
+    navigate('/query-history')
+  }
+
   return (
     <>
       <section className="dashboard-hero">
         <h1>What would you like to know?</h1>
-        <p>Interact with your business data using natural language...</p>
+        <p>Interact with your business data using natural language.</p>
         <div className="prompt-input">
           <textarea
-            placeholder="e.g., Show me the revenue growth across all enterprise clients in EMEA for Q3 compared to Q2..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="e.g., Top 5 categorías por monto total de ventas..."
             rows={3}
+            disabled={loading}
           />
           <div className="prompt-input-footer">
-            <div className="prompt-input-tools">
-              <button type="button" aria-label="Database">
-                <Database size={16} />
-              </button>
-              <button type="button" aria-label="Filters">
-                <SlidersHorizontal size={16} />
-              </button>
-            </div>
-            <Link to="/query-history" className="btn-analyze">
-              Analyze →
-            </Link>
+            <button
+              type="button"
+              className="btn-analyze"
+              disabled={loading}
+              onClick={() => handleAnalyze()}
+            >
+              {loading ? 'Analyzing…' : 'Analyze →'}
+            </button>
           </div>
         </div>
+        {submitError && (
+          <p className="form-error">{submitError}</p>
+        )}
       </section>
 
-      <h2 className="section-title">
-        <Lightbulb size={16} />
-        Suggested Queries
-      </h2>
-      <div className="suggestion-grid">
-        {suggestions.map(({ icon: Icon, text, category }) => (
-          <Link key={category} to="/query-history" className="suggestion-card">
-            <div className="suggestion-card-icon">
-              <Icon size={16} />
-            </div>
-            <p>{text}</p>
-            <span>{category}</span>
-          </Link>
-        ))}
-      </div>
-
-      <div className="dashboard-bottom">
-        <Card>
-          <div className="card-header">
-            <span className="card-title-lg">Recent Queries</span>
-            <Link to="/query-history" className="link-muted">
-              View All
-            </Link>
+      {successfulRecent.length > 0 && (
+        <>
+          <h2 className="section-title">
+            <Lightbulb size={16} />
+            Recent successful queries
+          </h2>
+          <div className="suggestion-grid">
+            {successfulRecent.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className="suggestion-card"
+                disabled={loading}
+                onClick={() => handleAnalyze(entry.prompt)}
+              >
+                <p>{entry.prompt}</p>
+              </button>
+            ))}
           </div>
-          <table className="data-table">
-            <thead>
+        </>
+      )}
+
+      <Card className="dashboard-recent-card">
+        <div className="card-header">
+          <span className="card-title-lg">Recent Queries</span>
+          <Link to="/query-history" className="link-muted">
+            View latest
+          </Link>
+        </div>
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Query</th>
+              <th>Status</th>
+              <th>Time</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentQueries.length === 0 ? (
               <tr>
-                <th>Query</th>
-                <th>Status</th>
-                <th>Time</th>
-                <th>Action</th>
+                <td colSpan={4} className="table-empty">
+                  No hay consultas en esta sesión. Ejecuta tu primera pregunta arriba.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {recentQueries.map((row) => {
-                const QueryIcon = row.icon
-                return (
+            ) : (
+              recentQueries.map((row) => (
                 <tr key={row.id}>
                   <td>
                     <div className="query-cell">
-                      <QueryIcon size={16} />
-                      {row.query}
+                      <MessageSquare size={16} />
+                      {row.prompt}
                     </div>
                   </td>
                   <td>
-                    <StatusBadge variant={row.status}>{row.statusLabel}</StatusBadge>
+                    <StatusBadge variant={row.status}>
+                      {row.statusLabel}
+                    </StatusBadge>
                   </td>
                   <td>{row.time}</td>
-                  <td />
+                  <td className="table-actions">
+                    {row.resultSnapshot || row.status === 'failed' ? (
+                      <button
+                        type="button"
+                        className="link-muted table-action-btn"
+                        disabled={loading}
+                        onClick={() => handleView(row)}
+                      >
+                        View
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="link-muted table-action-btn"
+                      disabled={loading}
+                      onClick={() => handleRerun(row)}
+                    >
+                      Re-run
+                    </button>
+                  </td>
                 </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </Card>
-
-        <article className="insight-card">
-          <div className="insight-card-header">
-            <Star size={16} />
-            Insight of the Day
-          </div>
-          <h3>Anomaly Detected</h3>
-          <p>
-            Server costs for cluster <strong>prod-us-east-1</strong> spiked by{' '}
-            <strong>+14.2%</strong> in the last 24 hours.
-          </p>
-          <div className="insight-chart">
-            {[20, 28, 22, 35, 30, 42, 85].map((h, i) => (
-              <span key={i} style={{ height: `${h}%` }} />
-            ))}
-          </div>
-          <button type="button" className="btn-investigate">
-            Investigate
-          </button>
-        </article>
-      </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </Card>
     </>
   )
 }

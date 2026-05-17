@@ -24,10 +24,10 @@ importers:
         specifier: 5.2.1
         version: 5.2.1
       node-sql-parser:
-        specifier: ^5.3.8
-        version: 5.4.0
+        specifier: 5.3.8
+        version: 5.3.8
       pg:
-        specifier: ^8.20.0
+        specifier: 8.20.0
         version: 8.20.0
 
 packages:
@@ -269,8 +269,8 @@ packages:
     resolution: {integrity: sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==}
     engines: {node: '>= 0.6'}
 
-  node-sql-parser@5.4.0:
-    resolution: {integrity: sha512-jVe6Z61gPcPjCElPZ6j8llB3wnqGcuQzefim1ERsqIakxnEy5JlzV7XKdO1KmacRG5TKwPc4vJTgSRQ0LfkbFw==}
+  node-sql-parser@5.3.8:
+    resolution: {integrity: sha512-aqGTzK8kPJAwQ6tqdS0l+vX358LXMmZDw902ePfiPn3PSDsg2HeR2tHFioXNHJW00YHoic6VVYY80waFb/zdxw==}
     engines: {node: '>=8'}
 
   object-assign@4.1.1:
@@ -682,7 +682,7 @@ snapshots:
 
   negotiator@1.0.0: {}
 
-  node-sql-parser@5.4.0:
+  node-sql-parser@5.3.8:
     dependencies:
       '@types/pegjs': 0.10.6
       big-integer: 1.6.52
