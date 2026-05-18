@@ -151,9 +151,6 @@ app.post(`/api/query`, intentMiddleware, async (req, res) => {
     }
 });
 
-// =========================
-// HEALTHCHECK
-// =========================
 
 
 app.get(`/health`, (req, res) => {
