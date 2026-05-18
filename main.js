@@ -112,7 +112,7 @@ app.use(express.json());
 
 
 
-app.post(`${API_URL}/api/query`, intentMiddleware, async (req, res) => {
+app.post(`/api/query`, intentMiddleware, async (req, res) => {
 
     const { prompt } = req.body;
 
@@ -156,7 +156,7 @@ app.post(`${API_URL}/api/query`, intentMiddleware, async (req, res) => {
 // =========================
 
 
-app.get(`${API_URL}/health`, (req, res) => {
+app.get(`/health`, (req, res) => {
     res.json({ status: 'OK' });
 });
 
