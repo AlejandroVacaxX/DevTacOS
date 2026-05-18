@@ -4,6 +4,14 @@ const dotenv = require('dotenv');
 
 
 const result = dotenv.config();
+app.use(cors())
+
+// Llamamos a la variable que inyectará Vite
+
+const apiKey = process.env.VITE_API_URL;
+
+
+  
 
 if (result.error) {
     console.error('Error cargando el archivo .env:', result.error);
@@ -104,8 +112,9 @@ app.use(express.json());
 
 // =========================
 // ENDPOINT PRINCIPAL
-// =========================
-app.post('/api/query', intentMiddleware, async (req, res) => {
+
+
+app.post(`${API_URL}/api/query`, intentMiddleware, async (req, res) => {
 
     const { prompt } = req.body;
 
@@ -147,7 +156,9 @@ app.post('/api/query', intentMiddleware, async (req, res) => {
 // =========================
 // HEALTHCHECK
 // =========================
-app.get('/health', (req, res) => {
+
+fetch(`${API_URL}/tu-endpoint`)
+app.get(`${API_URL}/health`, (req, res) => {
     res.json({ status: 'OK' });
 });
 
