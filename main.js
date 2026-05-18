@@ -110,8 +110,6 @@ app.use(cors());
 app.use(express.json());
 
 
-// =========================
-// ENDPOINT PRINCIPAL
 
 
 app.post(`${API_URL}/api/query`, intentMiddleware, async (req, res) => {
@@ -157,15 +155,12 @@ app.post(`${API_URL}/api/query`, intentMiddleware, async (req, res) => {
 // HEALTHCHECK
 // =========================
 
-fetch(`${API_URL}/tu-endpoint`)
+
 app.get(`${API_URL}/health`, (req, res) => {
     res.json({ status: 'OK' });
 });
 
-// =========================
-// START SERVER
-// =========================
+
 app.listen(PORT,'0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
-
 });
