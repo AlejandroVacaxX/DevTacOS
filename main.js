@@ -4,11 +4,11 @@ const dotenv = require('dotenv');
 
 
 const result = dotenv.config();
-app.use(cors())
+
 
 // Llamamos a la variable que inyectará Vite
 
-const apiKey = process.env.VITE_API_URL;
+const API_URL = process.env.VITE_API_URL;
 
 
   
